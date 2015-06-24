@@ -82,23 +82,25 @@ elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
             portaudio/src/os/win/pa_x86_plain_converters.c
     )
 
-    target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE 
+    set ( ${PROJECT_NAME}_INCLUDES 
             portaudio/src/os/win
             portaudio/include
             portaudio/src/common
             ${CMAKE_CURRENT_BINARY_DIR}/portaudio
     )
+    target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
 
     target_compile_definitions ( ${PROJECT_NAME} PRIVATE
-        -DUNICODE
-        -D_UNICODE
-        -D_CRT_SECURE_NO_WARNINGS
-        -DPORTAUDIO_CMAKE_GENERATED
+            -DUNICODE
+            -D_UNICODE
+            -D_CRT_SECURE_NO_WARNINGS
+            -DPORTAUDIO_CMAKE_GENERATED
     )
 
     if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
         target_compile_definitions ( ${PROJECT_NAME} PRIVATE -DPA_ENABLE_DEBUG_OUTPUT)
     endif ( )
+
 
 endif ( )
 

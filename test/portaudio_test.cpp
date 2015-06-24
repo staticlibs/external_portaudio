@@ -63,8 +63,10 @@
 
 int main() {
     auto errinit = Pa_Initialize();
+    (void) errinit;
     assert(errinit == paNoError);
     auto errterm = Pa_Terminate();
+    (void) errterm;
     assert(errterm == paNoError);
 
     std::cout << "test ran" << std::endl;
