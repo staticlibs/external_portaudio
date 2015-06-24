@@ -101,16 +101,20 @@ int main() {
             paNoFlag, //flags that can be used to define dither, clip settings and more
             patestCallback, //your callback function
             nullptr); //data to be passed to callback. In C++, it is frequently (void *)this
+    (void) erropen;
     assert(erropen == paNoError);
     auto errstart = Pa_StartStream(stream);
+    (void) errstart;
     assert(errstart == paNoError);
     
-    std::this_thread::sleep_for(std::chrono::seconds{5});
+    std::this_thread::sleep_for(std::chrono::seconds{30});
     
     auto errstop = Pa_StopStream(stream);
+    (void) errstop;
     assert(errstop == paNoError);
     
     auto errclose = Pa_CloseStream(stream);
+    (void) errclose;
     assert(errclose == paNoError);
     std::cout << "----------------" << std::endl;
     
