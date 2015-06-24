@@ -1,0 +1,6 @@
+[submodule "cmake"]
+	path = cmake
+	url = ../cmake.git
+[submodule "portaudio"]
+	path = portaudio
+	url = ../mirror_portaudio.git
