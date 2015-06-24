@@ -24,31 +24,83 @@ set ( ${PROJECT_NAME}_STATICLIB_VERSION 2.0 )
 # common include
 include ( ${CMAKE_CURRENT_LIST_DIR}/cmake/staticlibs_common.cmake )
 
-# variabled for makefiles
-if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
-    set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}" )
-#    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}" )
-    set ( ${PROJECT_NAME}_DEBUG "--enable-debug-output" )
-endif ( )
-if ( CMAKE_BUILD_TYPE MATCHES "Release" )
-    set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}" )
-#    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" )
-    set ( ${PROJECT_NAME}_DEBUG "--disable-debug-output" )
-endif ( )
-if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
-    set ( ${PROJECT_NAME}_WITH_BACKEND "--with-alsa" )
-endif ( )
+if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
+    # non-windows indirect build
+    # variabled for makefiles
+    if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
+        set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}" )
+    #    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}" )
+        set ( ${PROJECT_NAME}_DEBUG "--enable-debug-output" )
+    endif ( )
+    if ( CMAKE_BUILD_TYPE MATCHES "Release" )
+        set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}" )
+    #    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" )
+        set ( ${PROJECT_NAME}_DEBUG "--disable-debug-output" )
+    endif ( )
+    if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
+        set ( ${PROJECT_NAME}_WITH_BACKEND "--with-alsa" )
+    endif ( )
 
-# library config
-configure_file ( ${CMAKE_CURRENT_LIST_DIR}/Makefile-${STATICLIB_TOOLCHAIN}
-        ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
-add_custom_target( ${PROJECT_NAME}_build
-        COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
-add_library( ${PROJECT_NAME} STATIC IMPORTED GLOBAL )
-set_target_properties( ${PROJECT_NAME} PROPERTIES IMPORTED_LOCATION 
-        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio${CMAKE_STATIC_LIBRARY_SUFFIX} )
-add_dependencies( ${PROJECT_NAME} ${PROJECT_NAME}_build )
-set ( ${PROJECT_NAME}_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/portaudio/include )
+    # library config
+    configure_file ( ${CMAKE_CURRENT_LIST_DIR}/Makefile-${STATICLIB_TOOLCHAIN}
+            ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
+    add_custom_target( ${PROJECT_NAME}_build
+            COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
+    add_library( ${PROJECT_NAME} STATIC IMPORTED GLOBAL )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES IMPORTED_LOCATION 
+            ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio${CMAKE_STATIC_LIBRARY_SUFFIX} )
+    add_dependencies( ${PROJECT_NAME} ${PROJECT_NAME}_build )
+    set ( ${PROJECT_NAME}_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/portaudio/include )
+
+# windows direct CMake build, based on https://subversion.assembla.com/svn/portaudio/portaudio/trunk/CMakeLists.txt
+elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
+
+    set ( GENERATED_MESSAGE "CMake generated file, do NOT edit! Use CMake-GUI to change configuration instead." )
+    option ( PA_USE_WMME "WMME backend" ON )
+    configure_file ( portaudio/cmake_support/options_cmake.h.in ${CMAKE_CURRENT_BINARY_DIR}/portaudio/options_cmake.h @ONLY )
+
+    add_library ( ${PROJECT_NAME} STATIC
+            # WMME
+            portaudio/src/hostapi/wmme/pa_win_wmme.c
+            # common
+            portaudio/src/common/pa_allocation.c
+            portaudio/src/common/pa_converters.c
+            portaudio/src/common/pa_cpuload.c
+            portaudio/src/common/pa_debugprint.c
+            portaudio/src/common/pa_dither.c
+            portaudio/src/common/pa_front.c
+            portaudio/src/common/pa_process.c
+            portaudio/src/common/pa_ringbuffer.c
+            portaudio/src/common/pa_stream.c
+            portaudio/src/common/pa_trace.c
+            # platform
+            portaudio/src/os/win/pa_win_hostapis.c
+            portaudio/src/os/win/pa_win_util.c
+            portaudio/src/os/win/pa_win_waveformat.c
+            portaudio/src/os/win/pa_win_wdmks_utils.c
+            portaudio/src/os/win/pa_win_coinitialize.c
+            portaudio/src/os/win/pa_x86_plain_converters.c
+    )
+
+    target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE 
+            portaudio/src/os/win
+            portaudio/include
+            portaudio/src/common
+            ${CMAKE_CURRENT_BINARY_DIR}/portaudio
+    )
+
+    target_compile_definitions ( ${PROJECT_NAME} PRIVATE
+        -DUNICODE
+        -D_UNICODE
+        -D_CRT_SECURE_NO_WARNINGS
+        -DPORTAUDIO_CMAKE_GENERATED
+    )
+
+    if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
+        target_compile_definitions ( ${PROJECT_NAME} PRIVATE -DPA_ENABLE_DEBUG_OUTPUT)
+    endif ( )
+
+endif ( )
 
 # tests
 if ( "${STATICLIB_ROOT_SOURCE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}" )
