@@ -107,7 +107,7 @@ int main() {
     (void) errstart;
     assert(errstart == paNoError);
     
-    std::this_thread::sleep_for(std::chrono::seconds{30});
+    std::this_thread::sleep_for(std::chrono::seconds{3});
     
     auto errstop = Pa_StopStream(stream);
     (void) errstop;
