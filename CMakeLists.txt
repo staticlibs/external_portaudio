@@ -111,12 +111,14 @@ if ( "${STATICLIB_ROOT_SOURCE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}" )
     add_executable ( portaudio_test ${CMAKE_CURRENT_LIST_DIR}/test/portaudio_test.cpp )
     target_include_directories ( portaudio_test BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
     target_link_libraries ( portaudio_test ${PROJECT_NAME} )
-    if ( STATICLIB_TOOLCHAIN MATCHES "linux_armv6rpi_gcc" )
-        # libasound2-dev_1.0.25-4_armhf.deb -> SYSROOT/usr/include
-        # libasound2_1.0.25-4_armhf.deb -> SYSROOT/usr/lib/libasound.so
+    if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
+        # raspberry
+        # http://archive.raspbian.org/raspbian/pool/main/a/alsa-lib/libasound2-dev_1.0.25-4_armhf.deb
+        # http://archive.raspbian.org/raspbian/pool/main/a/alsa-lib/libasound2_1.0.25-4_armhf.deb
+        # cortex-a7
+        # http://http.us.debian.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.0.25-4_armhf.deb
+        # http://http.us.debian.org/debian/pool/main/a/alsa-lib/libasound2_1.0.25-4_armhf.deb
         target_link_libraries ( portaudio_test rt pthread asound )
-    elseif ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
-        target_link_libraries ( portaudio_test rt asound )
     endif ( )
     # http://stackoverflow.com/q/27998009/314015
 #    if ( DEFINED CMAKE_MEMORYCHECK_COMMAND )
