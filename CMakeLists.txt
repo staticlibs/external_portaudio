@@ -56,7 +56,7 @@ elseif ( WIN32 )
     option ( PA_USE_WMME "WMME backend" ON )
     configure_file ( portaudio/cmake_support/options_cmake.h.in ${CMAKE_CURRENT_BINARY_DIR}/portaudio/options_cmake.h @ONLY )
 
-    add_library ( ${PROJECT_NAME} STATIC
+    add_library ( portaudio STATIC
             # WMME
             portaudio/src/hostapi/wmme/pa_win_wmme.c
             # common
@@ -85,9 +85,9 @@ elseif ( WIN32 )
             ${CMAKE_CURRENT_LIST_DIR}/portaudio/src/common
             ${CMAKE_CURRENT_BINARY_DIR}/portaudio
     )
-    target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
+    target_include_directories ( portaudio BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
 
-    target_compile_definitions ( ${PROJECT_NAME} PRIVATE
+    target_compile_definitions ( portaudio PRIVATE
             -DUNICODE
             -D_UNICODE
             -D_CRT_SECURE_NO_WARNINGS
@@ -95,8 +95,10 @@ elseif ( WIN32 )
     )
 
     if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
-        target_compile_definitions ( ${PROJECT_NAME} PRIVATE -DPA_ENABLE_DEBUG_OUTPUT)
+        target_compile_definitions ( portaudio PRIVATE -DPA_ENABLE_DEBUG_OUTPUT)
     endif ( )
+    
+    add_custom_target ( ${PROJECT_NAME} depends portaudio )
 endif ( )
 
 # pkg-config
