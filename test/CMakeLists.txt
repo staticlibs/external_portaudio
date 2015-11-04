@@ -104,3 +104,31 @@ elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
 
 endif ( )
 
+# tests
+if ( "${STATICLIB_ROOT_SOURCE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}" )
+    enable_testing ( )
+    set ( ${PROJECT_NAME}_TEST_INCLUDES ${${PROJECT_NAME}_INCLUDES} )
+    add_executable ( portaudio_test ${CMAKE_CURRENT_LIST_DIR}/test/portaudio_test.cpp )
+    target_include_directories ( portaudio_test BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
+    target_link_libraries ( portaudio_test ${PROJECT_NAME} )
+    if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
+        # raspberry
+        # http://archive.raspbian.org/raspbian/pool/main/a/alsa-lib/libasound2-dev_1.0.25-4_armhf.deb
+        # http://archive.raspbian.org/raspbian/pool/main/a/alsa-lib/libasound2_1.0.25-4_armhf.deb
+        # cortex-a7
+        # http://http.us.debian.org/debian/pool/main/a/alsa-lib/libasound2-dev_1.0.25-4_armhf.deb
+        # http://http.us.debian.org/debian/pool/main/a/alsa-lib/libasound2_1.0.25-4_armhf.deb
+        target_link_libraries ( portaudio_test rt pthread asound )
+    endif ( )
+    # http://stackoverflow.com/q/27998009/314015
+#    if ( DEFINED CMAKE_MEMORYCHECK_COMMAND )
+#        add_test ( portaudio_test 
+#                ${CMAKE_MEMORYCHECK_COMMAND} ${CMAKE_MEMORYCHECK_COMMAND_OPTIONS} 
+#                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/portaudio_test )
+#    else ( )
+    add_test ( portaudio_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/portaudio_test )
+#    endif ( )
+endif ( )
+
+# headers export
+set ( ${PROJECT_NAME}_INCLUDES ${${PROJECT_NAME}_INCLUDES} CACHE INTERNAL "" )
