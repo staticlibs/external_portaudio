@@ -80,9 +80,9 @@ elseif ( WIN32 )
     )
 
     set ( ${PROJECT_NAME}_INCLUDES 
-            portaudio/src/os/win
-            portaudio/include
-            portaudio/src/common
+            ${CMAKE_CURRENT_LIST_DIR}/portaudio/src/os/win
+            ${CMAKE_CURRENT_LIST_DIR}/portaudio/include
+            ${CMAKE_CURRENT_LIST_DIR}/portaudio/src/common
             ${CMAKE_CURRENT_BINARY_DIR}/portaudio
     )
     target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE ${${PROJECT_NAME}_INCLUDES} )
