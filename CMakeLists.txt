@@ -49,9 +49,8 @@ if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
     add_dependencies( portaudio ${PROJECT_NAME} )
     set ( ${PROJECT_NAME}_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/portaudio/include )
 
-# TODO
 # windows direct CMake build, based on https://subversion.assembla.com/svn/portaudio/portaudio/trunk/CMakeLists.txt
-elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
+elseif ( WIN32 )
 
     set ( GENERATED_MESSAGE "CMake generated file, do NOT edit! Use CMake-GUI to change configuration instead." )
     option ( PA_USE_WMME "WMME backend" ON )
@@ -98,8 +97,6 @@ elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
     if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
         target_compile_definitions ( ${PROJECT_NAME} PRIVATE -DPA_ENABLE_DEBUG_OUTPUT)
     endif ( )
-
-
 endif ( )
 
 # pkg-config
