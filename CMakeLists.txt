@@ -14,27 +14,24 @@
 
 cmake_minimum_required ( VERSION 2.8.12 )
 
-# toolchain setup
-set ( STATICLIB_TOOLCHAIN linux_amd64_gcc CACHE STRING "toolchain triplet" )
-set ( CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/toolchains/${STATICLIB_TOOLCHAIN}.cmake CACHE INTERNAL "" )
-
-# project setup
 project ( external_portaudio C CXX )
 set ( ${PROJECT_NAME}_STATICLIB_VERSION 2.0.1 )
-# common include
-include ( ${CMAKE_CURRENT_LIST_DIR}/cmake/staticlibs_common.cmake )
+set ( ${PROJECT_NAME}_DESCRIPTION "PortAudio library build for Staticlibs" )
+set ( ${PROJECT_NAME}_URL https://github.com/staticlibs/external_portaudio )
+include ( ${CMAKE_CURRENT_LIST_DIR}/resources/macros.cmake )
 
 if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
     # non-windows indirect build
+    if ( NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY )
+        set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
+    endif ( )
     # variabled for makefiles
     if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
         set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}" )
-    #    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}" )
         set ( ${PROJECT_NAME}_DEBUG "--enable-debug-output" )
     endif ( )
     if ( CMAKE_BUILD_TYPE MATCHES "Release" )
         set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}" )
-    #    set ( ${PROJECT_NAME}_CXXFLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" )
         set ( ${PROJECT_NAME}_DEBUG "--disable-debug-output" )
     endif ( )
     if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
@@ -42,16 +39,17 @@ if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
     endif ( )
 
     # library config
-    configure_file ( ${CMAKE_CURRENT_LIST_DIR}/Makefile-${STATICLIB_TOOLCHAIN}
+    configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/Makefile-${STATICLIB_TOOLCHAIN}
             ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
-    add_custom_target( ${PROJECT_NAME}_build
+    add_custom_target( ${PROJECT_NAME} ALL
             COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
-    add_library( ${PROJECT_NAME} STATIC IMPORTED GLOBAL )
-    set_target_properties( ${PROJECT_NAME} PROPERTIES IMPORTED_LOCATION 
+    add_library( portaudio STATIC IMPORTED GLOBAL )
+    set_target_properties( portaudio PROPERTIES IMPORTED_LOCATION 
             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    add_dependencies( ${PROJECT_NAME} ${PROJECT_NAME}_build )
+    add_dependencies( portaudio ${PROJECT_NAME} )
     set ( ${PROJECT_NAME}_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/portaudio/include )
 
+# TODO
 # windows direct CMake build, based on https://subversion.assembla.com/svn/portaudio/portaudio/trunk/CMakeLists.txt
 elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
 
@@ -104,3 +102,16 @@ elseif ( STATICLIB_TOOLCHAIN MATCHES "windows_[^_]+_msvc" )
 
 endif ( )
 
+# pkg-config
+if ( NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY )
+    set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
+endif ( )
+set ( ${PROJECT_NAME}_MODULE portaudio )
+external_portaudio_list_to_string ( ${PROJECT_NAME}_PC_CFLAGS "-I" ${PROJECT_NAME}_INCLUDES )
+set ( ${PROJECT_NAME}_PC_LIBS "-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lportaudio" )
+if ( CMAKE_SYSTEM_NAME MATCHES "Linux" )
+    # using alsa without pkg-config here
+    set ( ${PROJECT_NAME}_PC_LIBS "${${PROJECT_NAME}_PC_LIBS} -lrt -lpthread -lasound" )
+endif ( )
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/pkg-config.in 
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/pkgconfig/portaudio.pc )

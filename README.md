@@ -38,7 +38,7 @@ Visual Studio development command prompt
 
 To build on other platforms using GCC or Clang with GNU Make:
 
-    cmake .. -DCMAKE_CXX_FLAGS="--std=c++11" -DSTATICLIB_TOOLCHAIN=...
+    cmake .. -DSTATICLIB_TOOLCHAIN=...
     make
 
 See [StaticlibsToolchains](https://github.com/staticlibs/wiki/wiki/StaticlibsToolchains) for 
