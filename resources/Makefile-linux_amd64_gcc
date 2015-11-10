@@ -14,14 +14,9 @@
 
 export CC := ${CMAKE_C_COMPILER}
 export CFLAGS := ${${PROJECT_NAME}_CFLAGS}
-# export CXX := ${CMAKE_CXX_COMPILER}
-# export CXXFLAGS := ${${PROJECT_NAME}_CXXFLAGS} \
-#	-Wno-error=unused-parameter	
 
-all:
-ifeq ($(wildcard ${CMAKE_CURRENT_BINARY_DIR}/portaudio),)
-	cp -a ${CMAKE_CURRENT_LIST_DIR}/portaudio ${CMAKE_CURRENT_BINARY_DIR}/portaudio
-	cd ${CMAKE_CURRENT_BINARY_DIR}/portaudio && $(SH) ./configure \
+configure:
+	cd portaudio && $(SH) ./configure \
 	    --enable-static \
 	    --disable-cxx \
 	    --disable-shared \
@@ -31,9 +26,8 @@ ifeq ($(wildcard ${CMAKE_CURRENT_BINARY_DIR}/portaudio),)
 	    --without-oss \
 	    --without-asihpi \
 	    ${${PROJECT_NAME}_DEBUG}
-	cd ${CMAKE_CURRENT_BINARY_DIR}/portaudio && $(MAKE)
+build:
+	cd portaudio && $(MAKE)
 	mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-	cp ${CMAKE_CURRENT_BINARY_DIR}/portaudio/lib/.libs/libportaudio.a ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio.a
-else
-	@echo "[${CMAKE_CURRENT_BINARY_DIR}/portaudio] directory found, skipping build"
-endif	
+	cp ${CMAKE_CURRENT_BINARY_DIR}/portaudio/lib/.libs/libportaudio.a \
+	    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio.a

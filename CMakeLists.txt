@@ -15,7 +15,7 @@
 cmake_minimum_required ( VERSION 2.8.12 )
 
 project ( external_portaudio C CXX )
-set ( ${PROJECT_NAME}_STATICLIB_VERSION 2.0.1 )
+set ( ${PROJECT_NAME}_STATICLIB_VERSION 2.0.2 )
 set ( ${PROJECT_NAME}_DESCRIPTION "PortAudio library build for Staticlibs" )
 set ( ${PROJECT_NAME}_URL https://github.com/staticlibs/external_portaudio )
 include ( ${CMAKE_CURRENT_LIST_DIR}/resources/macros.cmake )
@@ -25,7 +25,10 @@ if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
     if ( NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY )
         set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
     endif ( )
-    # variabled for makefiles
+    # copy files
+    file ( COPY ${CMAKE_CURRENT_LIST_DIR}/portaudio 
+            DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+    # variables for makefile
     if ( CMAKE_BUILD_TYPE MATCHES "Debug" )
         set ( ${PROJECT_NAME}_CFLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}" )
         set ( ${PROJECT_NAME}_DEBUG "--enable-debug-output" )
@@ -37,12 +40,17 @@ if ( STATICLIB_TOOLCHAIN MATCHES "(linux|macosx)_[^_]+_[^_]+" )
     if ( STATICLIB_TOOLCHAIN MATCHES "linux_[^_]+_[^_]+" )
         set ( ${PROJECT_NAME}_WITH_BACKEND "--with-alsa" )
     endif ( )
-
-    # library config
+    # copy makefile
     configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/Makefile-${STATICLIB_TOOLCHAIN}
             ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
-    add_custom_target( ${PROJECT_NAME} ALL
-            COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN})
+    # run configure
+    execute_process ( COMMAND ${CMAKE_MAKE_PROGRAM}
+            -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN} configure
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
+    # add build target
+    add_custom_target( ${PROJECT_NAME} ALL COMMAND ${CMAKE_MAKE_PROGRAM}
+            -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile-${STATICLIB_TOOLCHAIN} build
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
     add_library( portaudio STATIC IMPORTED GLOBAL )
     set_target_properties( portaudio PROPERTIES IMPORTED_LOCATION 
             ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libportaudio${CMAKE_STATIC_LIBRARY_SUFFIX} )
