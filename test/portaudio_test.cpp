@@ -21,14 +21,16 @@
  * Created on June 24, 2015, 10:38 AM
  */
 
+#include <chrono>
+#include <limits>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
-#include <sstream>
-#include <limits>
-#include <chrono>
-#include <cassert>
 #include <cstring>
+
+#include "staticlib/config.hpp"
+#include "staticlib/config/assert.hpp"
 
 #include "portaudio.h"
 
@@ -63,11 +65,10 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer, unsigned 
     return PaStreamCallbackResult::paContinue;
 }
 
-int main() {
+void test_portaudio() {
     // init
     auto errinit = Pa_Initialize();
-    (void) errinit;
-    assert(errinit == paNoError);
+    slassert(errinit == paNoError);
     
     auto numDevices = Pa_GetDeviceCount();
     std::cout << "----------------" << std::endl;
@@ -101,29 +102,35 @@ int main() {
             paNoFlag, //flags that can be used to define dither, clip settings and more
             patestCallback, //your callback function
             nullptr); //data to be passed to callback. In C++, it is frequently (void *)this
-    (void) erropen;
-    assert(erropen == paNoError);
+    slassert(erropen == paNoError);
     auto errstart = Pa_StartStream(stream);
-    (void) errstart;
-    assert(errstart == paNoError);
+    slassert(errstart == paNoError);
     
-    std::this_thread::sleep_for(std::chrono::seconds{3});
+    std::this_thread::sleep_for(std::chrono::seconds{1});
     
     auto errstop = Pa_StopStream(stream);
-    (void) errstop;
-    assert(errstop == paNoError);
+    slassert(errstop == paNoError);
     
     auto errclose = Pa_CloseStream(stream);
-    (void) errclose;
-    assert(errclose == paNoError);
+    slassert(errclose == paNoError);
     std::cout << "----------------" << std::endl;
     
     // terminate
     auto errterm = Pa_Terminate();
-    (void) errterm;
-    assert(errterm == paNoError);
+    slassert(errterm == paNoError);
 
     std::cout << "test ran" << std::endl;
-    return 0;
 }
 
+int main() {
+    try {
+        // false positives under valgrind
+#ifndef STATICLIB_LINUX        
+        test_portaudio();
+#endif        
+    } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
+        return 1;
+    }
+    return 0;
+}

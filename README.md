@@ -18,7 +18,7 @@ Project uses `Makefile`s for Linux builds and native CMake for Windows builds.
 
 [Mirror of PortAudio repository](https://github.com/staticlibs/mirror_portaudio) is used as a submodule for this project.
 
-Link to [documentation](http://www.portaudio.com/docs/).
+Link to the [documentation](http://www.portaudio.com/docs/).
 
 How to build
 ------------
@@ -36,11 +36,6 @@ Visual Studio development command prompt
     cmake ..
     msbuild external_portaudio.sln
 
-To build on other platforms using GCC or Clang with GNU Make:
-
-    cmake .. -DSTATICLIB_TOOLCHAIN=...
-    make
-
 See [StaticlibsToolchains](https://github.com/staticlibs/wiki/wiki/StaticlibsToolchains) for 
 more information about the toolchain setup and cross-compilation.
 
@@ -53,6 +48,11 @@ This project is released under the [Apache License 2.0](http://www.apache.org/li
 
 Changelog
 ---------
+
+**2016-01-17**
+
+ * version 2.0.3
+ * minor CMake changes
 
 **2015-11-10**
 
